@@ -12,7 +12,14 @@ interface Props {
 }
 
 function ConvoBlock({ data }: { data: NonNullable<LogEntry["data"]> }) {
-  const colors = getStatusColor(data.status);
+  const safeStatus =
+  data.classification === "Hot" ||
+  data.classification === "Warm" ||
+  data.classification === "Cold"
+    ? data.classification
+    : "Warm";
+
+const colors = getStatusColor(safeStatus);
   return (
     <div className="mt-2 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
       <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
@@ -24,7 +31,7 @@ function ConvoBlock({ data }: { data: NonNullable<LogEntry["data"]> }) {
         </div>
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${colors.bg} ${colors.text} ${colors.border}`}>
           <span className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
-          {data.status}
+          {safeStatus}
         </span>
       </div>
       <div className="p-4 space-y-3">
@@ -48,9 +55,13 @@ function ConvoBlock({ data }: { data: NonNullable<LogEntry["data"]> }) {
       })}
       </div>
       <div className="px-4 py-2 bg-slate-50 border-t border-slate-200">
-        <span className="text-xs text-slate-500 font-medium">Action: </span>
-        <span className="text-xs text-slate-700">{data.recommendedAction}</span>
-      </div>
+  <span className="text-xs text-slate-500 font-medium">Action: </span>
+  <span className="text-xs text-slate-700">{data.recommendedAction}</span>
+
+  <div className="text-xs text-slate-500 mt-1">
+    PQS Score: <span className="font-bold">{data.pqs_score}/10</span>
+  </div>
+</div>
     </div>
   );
 }

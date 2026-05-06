@@ -15,4 +15,10 @@ export function getStatusColor(status: "Hot" | "Warm" | "Cold") {
     case "Warm": return { bg: "bg-amber-50",  text: "text-amber-700",  border: "border-amber-200",  dot: "bg-amber-500"  };
     case "Cold": return { bg: "bg-slate-50",  text: "text-slate-600",  border: "border-slate-200",  dot: "bg-slate-400"  };
   }
+  return {
+  bg: "bg-slate-50",
+  text: "text-slate-600",
+  border: "border-slate-200",
+  dot: "bg-slate-400",
+  };
 }

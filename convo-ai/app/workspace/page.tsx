@@ -22,6 +22,8 @@ export type Stats = {
   warm: number;
   cold: number;
   processed: number;
+  total: number;
+  avgPqs: number;
   topObjection: string;
 };
 
@@ -35,12 +37,14 @@ export default function WorkspacePage() {
   const [processedLeads, setProcessedLeads] = useState<any[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [stats, setStats] = useState<Stats>({
-    hot: 0,
-    warm: 0,
-    cold: 0,
-    processed: 0,
-    topObjection: "—",
-  });
+  hot: 0,
+  warm: 0,
+  cold: 0,
+  processed: 0,
+  total: 0,
+  avgPqs: 0,
+  topObjection: "—",
+});
   const [progress, setProgress] = useState(0);
   const [stage, setStage] = useState("Idle");
   const [file, setFile] = useState<File | null>(null);
@@ -117,6 +121,7 @@ const startProcessing = async () => {
     });
 
     const data = await response.json();
+    
 
     console.log("PROCESS RESPONSE:", data);
 
@@ -144,9 +149,10 @@ const startProcessing = async () => {
   data: {
     name: lead.name,
     intent: lead.intent || "Investment",
-    status: lead.classification,
+    classification: lead.classification,
     conversation: lead.conversation || [],
-    recommendedAction: lead.recommendedAction || "Follow up"
+    recommendedAction: lead.recommended_action || "Follow up",
+    pqs_score: lead.pqs_score || 5,
   }
 });
 
@@ -158,7 +164,9 @@ const startProcessing = async () => {
       warm,
       cold,
       processed: processed.length,
-      topObjection: processed[0]?.objection || "—",
+      total: processed.length,
+      avgPqs: data.analytics.avg_pqs,
+      topObjection: data.analytics.top_objection || "—",
     });
 
     setStage("Completed");
@@ -222,7 +230,7 @@ const startProcessing = async () => {
         </div>
 
         <div className="w-72 border-l bg-white overflow-y-auto">
-          <StatsPanel stats={stats} total={leads.length} />
+          <StatsPanel stats={stats} />
         </div>
       </div>
     </div>

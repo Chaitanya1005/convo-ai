@@ -4,10 +4,9 @@ import { Stats } from "@/app/workspace/page";
 
 interface Props {
   stats: Stats;
-  total: number;
 }
 
-export default function StatsPanel({ stats, total }: Props) {
+export default function StatsPanel({ stats }: Props) {
   const conversionRate = stats.processed > 0 ? Math.round((stats.hot / stats.processed) * 100) : 0;
 
   return (
@@ -18,12 +17,12 @@ export default function StatsPanel({ stats, total }: Props) {
         <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 mb-3">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-slate-500">Leads Processed</span>
-            <span className="text-xs font-bold text-slate-800 font-mono">{stats.processed}/{total}</span>
+            <span className="text-xs font-bold text-slate-800 font-mono">{stats.processed}/{stats.total}</span>
           </div>
           <div className="w-full bg-slate-200 rounded-full h-1.5">
             <div
               className="bg-brand-500 h-1.5 rounded-full transition-all duration-500"
-              style={{ width: `${total > 0 ? (stats.processed / total) * 100 : 0}%` }}
+              style={{ width: `${stats.total > 0 ? (stats.processed / stats.total) * 100 : 0}%` }}
             />
           </div>
         </div>
