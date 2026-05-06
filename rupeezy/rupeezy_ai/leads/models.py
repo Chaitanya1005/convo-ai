@@ -38,6 +38,26 @@ class Lead(models.Model):
     )
 
     summary = models.TextField(blank=True, null=True)
+    intent = models.CharField(
+    max_length=255,
+    blank=True,
+    null=True
+    )
+
+    recommended_action = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    conversation = models.JSONField(
+        default=list,
+        blank=True
+    )
+
+    processed_at = models.DateTimeField(
+        blank=True,
+        null=True
+    )
 
     processed = models.BooleanField(default=False)
 
