@@ -29,9 +29,21 @@ export default function TestAgentChat() {
 
   const [messages, setMessages] = useState<Message[]>([
     {
-    role: "assistant",
-    content:
-      ""
+  role: "assistant",
+  content: `Hi! \n
+
+I’m Convo-AI, your AI Relationship Manager for Rupeezy’s AP Partner Program.
+
+We help partners earn through
+
+zero joining fees, 
+up to 100% brokerage sharing, 
+daily payouts via RISE Portal, 
+dedicated RM & backend support.
+
+I can walk you through the complete AP program. 
+
+So tell me — are you already connected with a broker, or exploring partnership opportunities right now?`
 },
   ]);
 

@@ -8,7 +8,7 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [email] = useState("rm@rupeezy.in");
-  const [password] = useState("rupeezy@2024");
+  const [password] = useState("rupeezy@2026");
 
   const handleLogin = async () => {
     setLoading(true);
@@ -66,7 +66,7 @@ export default function LoginPage() {
         </div>
 
         <div className="relative">
-          <p className="text-blue-200/60 text-xs">© 2024 Rupeezy Financial Services Pvt Ltd</p>
+          <p className="text-blue-200/60 text-xs">© 2026 Rupeezy Financial Services Pvt Ltd</p>
         </div>
       </div>
 
@@ -89,7 +89,7 @@ export default function LoginPage() {
             <Shield size={16} className="text-brand-600 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-xs font-semibold text-brand-700">Demo credentials pre-filled</p>
-              <p className="text-xs text-slate-500 mt-0.5">Email: rm@rupeezy.in · Password: rupeezy@2024</p>
+              <p className="text-xs text-slate-500 mt-0.5">Email: rm@rupeezy.in · Password: rupeezy@2026</p>
             </div>
           </div>
 

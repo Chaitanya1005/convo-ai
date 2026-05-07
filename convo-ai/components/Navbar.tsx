@@ -19,10 +19,9 @@ export default function Navbar() {
           <div className="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center">
             <TrendingUp size={14} className="text-white" />
           </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="font-bold text-slate-800 text-sm">Convo-AI</span>
+          <div className="flex items-baseline gap-1.5 ">
+            <span className="font-bold text-slate-800 text-xl">Convo-AI</span>
             <span className="text-slate-400 text-xs">·</span>
-            <span className="text-slate-500 text-xs">Rupeezy RM Workspace</span>
           </div>
         </Link>
 
@@ -45,12 +44,7 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-2">
-        <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-500 transition-colors">
-          <Bell size={15} />
-        </button>
-        <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-500 transition-colors">
-          <Settings size={15} />
-        </button>
+
         <div className="flex items-center gap-2 pl-2 ml-1 border-l border-slate-200">
           <div className="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center">
             <User size={13} className="text-brand-600" />

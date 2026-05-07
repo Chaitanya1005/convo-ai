@@ -344,39 +344,102 @@ def run_ai_call(lead):
     return generate_ai_response(lead)
 def chat_with_agent(user_message, history):
 
-    messages = [
-        {
-            "role": "system",
-            "content": SYSTEM_PROMPT
-        }
-    ]
+    formatted_history = ""
 
-    # STRICT HISTORY BUILDING
-    for msg in history:
+    for msg in history[-10:]:
 
         role = msg.get("role", "user")
 
-        if role not in ["user", "assistant"]:
-            role = "user"
+        if role == "assistant":
+            formatted_history += f"AI: {msg.get('content', '')}\n"
 
-        messages.append({
-            "role": role,
-            "content": msg.get("content", "")
-        })
+        else:
+            formatted_history += f"USER: {msg.get('content', '')}\n"
 
-    # ADD LATEST USER MESSAGE
-    messages.append({
-        "role": "user",
-        "content": user_message
-    })
+    prompt = f"""
+You are Convo-AI.
+
+You are an elite multilingual AI Relationship Manager for Rupeezy's AP Partner Program.
+
+You conduct REALISTIC Indian sales conversations.
+
+YOUR PERSONALITY:
+- Human
+- Persuasive
+- Professional
+- Conversational
+- Slightly sales-oriented
+- Never robotic
+
+PROGRAM BENEFITS:
+- Zero joining fee
+- Up to 100% brokerage sharing
+- Daily payouts
+- Dedicated RM support
+- Backend support handled by Rupeezy
+
+IMPORTANT RULES:
+- Reply naturally.
+- Keep replies short.
+- Speak in Hinglish naturally.
+- Never sound like customer support.
+- Never restart the conversation.
+- Never repeat greetings.
+- Never say:
+  "Thank you for your interest."
+- Never ask:
+  "Could you please tell me more about your onboarding requirements?"
+
+SALES FLOW:
+1. Understand user background
+2. Explain AP benefits
+3. Handle objections naturally
+4. Push onboarding discussion
+5. Build trust
+6. Move toward RM handoff
+
+COMMON OBJECTIONS:
+- already using another broker
+- need time
+- not interested
+- trust concerns
+- low network
+
+CONVERSATION HISTORY:
+{formatted_history}
+
+LATEST USER MESSAGE:
+USER: {user_message}
+
+Now generate ONLY the AI reply.
+"""
 
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
-        messages=messages,
-        temperature=0.6,
-        max_tokens=300
+        messages=[
+            {
+                "role": "system",
+                "content": SYSTEM_PROMPT
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        temperature=0.8,
+        max_tokens=180
     )
 
     ai_reply = response.choices[0].message.content.strip()
 
-    return ai_reply
+    # CLEANUP
+    banned_phrases = [
+        "Thank you for your interest.",
+        "Could you please tell me more about your onboarding requirements?",
+        "How may I assist you today?"
+    ]
+
+    for phrase in banned_phrases:
+        ai_reply = ai_reply.replace(phrase, "")
+
+    return ai_reply.strip()
