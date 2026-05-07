@@ -62,7 +62,7 @@ export default function WorkspacePage() {
   };
   const fetchLeads = async () => {
   try {
-    const res = await fetch("http://localhost:8000/api/leads/");
+    const res = await fetch("http://process.env.NEXT_PUBLIC_API_URL/api/leads/");
     const data = await res.json();
 
     console.log("DB Leads:", data);
@@ -93,7 +93,7 @@ const uploadCSV = async (selectedFile?: File) => {
 setLogs([]);
 
 
-    const res = await fetch("http://localhost:8000/api/upload-csv/", {
+    const res = await fetch("http://process.env.NEXT_PUBLIC_API_URL/api/upload-csv/", {
       method: "POST",
       body: formData,
     });
@@ -161,7 +161,7 @@ setStats({
   });
 
   try {
-    const response = await fetch("http://127.0.0.1:8000/api/process-leads/", {
+    const response = await fetch("process.env.NEXT_PUBLIC_API_URL/api/process-leads/", {
       method: "POST",
     });
 

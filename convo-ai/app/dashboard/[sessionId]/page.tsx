@@ -116,7 +116,7 @@ export default function DashboardPage() {
       try {
 
         const response = await fetch(
-          `http://127.0.0.1:8000/api/dashboard/${sessionId}/`
+          `process.env.NEXT_PUBLIC_API_URL/api/dashboard/${sessionId}/`
         );
 
         const result = await response.json();
@@ -213,7 +213,7 @@ export default function DashboardPage() {
           <button
   onClick={() => {
     window.open(
-      `http://127.0.0.1:8000/api/dashboard/${sessionId}/export/`,
+      `process.env.NEXT_PUBLIC_API_URL/api/dashboard/${sessionId}/export/`,
       "_blank"
     );
   }}

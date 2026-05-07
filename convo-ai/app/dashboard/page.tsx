@@ -23,7 +23,7 @@ export default function DashboardHomePage() {
       try {
 
         const response = await fetch(
-          "http://127.0.0.1:8000/api/sessions/"
+          "process.env.NEXT_PUBLIC_API_URL/api/sessions/"
         );
 
         const data = await response.json();
