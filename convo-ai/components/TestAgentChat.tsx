@@ -66,7 +66,7 @@ messagesEndRef.current?.scrollIntoView();
     try {
 
       const response = await fetch(
-        "process.env.NEXT_PUBLIC_API_URL/api/test-agent/",
+        "https://convo-ai-backend-qg1y.onrender.com/api/test-agent/",
         {
           method: "POST",
           headers: {

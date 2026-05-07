@@ -23,7 +23,7 @@ export default function DashboardHomePage() {
       try {
 
         const response = await fetch(
-          "process.env.NEXT_PUBLIC_API_URL/api/sessions/"
+          "https://convo-ai-backend-qg1y.onrender.com/api/sessions/"
         );
 
         const data = await response.json();

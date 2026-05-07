@@ -62,7 +62,7 @@ export default function WorkspacePage() {
   };
   const fetchLeads = async () => {
   try {
-    const res = await fetch("http://process.env.NEXT_PUBLIC_API_URL/api/leads/");
+    const res = await fetch("http://https://convo-ai-backend-qg1y.onrender.com/api/leads/");
     const data = await res.json();
 
     console.log("DB Leads:", data);
@@ -93,7 +93,7 @@ const uploadCSV = async (selectedFile?: File) => {
 setLogs([]);
 
 
-    const res = await fetch("http://process.env.NEXT_PUBLIC_API_URL/api/upload-csv/", {
+    const res = await fetch("http://https://convo-ai-backend-qg1y.onrender.com/api/upload-csv/", {
       method: "POST",
       body: formData,
     });
@@ -161,7 +161,7 @@ setStats({
   });
 
   try {
-    const response = await fetch("process.env.NEXT_PUBLIC_API_URL/api/process-leads/", {
+    const response = await fetch("https://convo-ai-backend-qg1y.onrender.com/api/process-leads/", {
       method: "POST",
     });
 

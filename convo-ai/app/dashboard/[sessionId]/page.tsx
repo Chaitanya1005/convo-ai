@@ -116,7 +116,7 @@ export default function DashboardPage() {
       try {
 
         const response = await fetch(
-          `process.env.NEXT_PUBLIC_API_URL/api/dashboard/${sessionId}/`
+          `https://convo-ai-backend-qg1y.onrender.com/api/dashboard/${sessionId}/`
         );
 
         const result = await response.json();
@@ -213,7 +213,7 @@ export default function DashboardPage() {
           <button
   onClick={() => {
     window.open(
-      `process.env.NEXT_PUBLIC_API_URL/api/dashboard/${sessionId}/export/`,
+      `https://convo-ai-backend-qg1y.onrender.com/api/dashboard/${sessionId}/export/`,
       "_blank"
     );
   }}
