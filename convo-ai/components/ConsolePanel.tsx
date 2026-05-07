@@ -2,7 +2,6 @@
 import { RefObject, useEffect } from "react";
 import { Terminal, MessageSquare, AlertCircle, Cpu, CheckCircle2 } from "lucide-react";
 import { LogEntry } from "@/app/workspace/page";
-import { getStatusColor } from "@/lib/utils";
 
 interface Props {
   logs: LogEntry[];
@@ -11,62 +10,11 @@ interface Props {
   logEndRef: RefObject<HTMLDivElement>;
 }
 
-function ConvoBlock({ data }: { data: NonNullable<LogEntry["data"]> }) {
-  const safeStatus =
-  data.classification === "Hot" ||
-  data.classification === "Warm" ||
-  data.classification === "Cold"
-    ? data.classification
-    : "Warm";
-
-const colors = getStatusColor(safeStatus);
-  return (
-    <div className="mt-2 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-      <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
-        <div className="flex items-center gap-2">
-          <MessageSquare size={13} className="text-slate-500" />
-          <span className="text-xs font-semibold text-slate-700">{data.name}</span>
-          <span className="text-slate-300">·</span>
-          <span className="text-xs text-slate-500">{data.intent}</span>
-        </div>
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${colors.bg} ${colors.text} ${colors.border}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
-          {safeStatus}
-        </span>
-      </div>
-      <div className="p-4 space-y-3">
-        {data.conversation.slice(1, 4).map((msg: any, i: number) => {
-  return (
-    <div key={i} className={`flex gap-2.5 ${msg.sender === "AI" ? "" : "flex-row-reverse"}`}>
-      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold ${
-              msg.sender === "AI" ? "bg-brand-100 text-brand-600" : "bg-slate-100 text-slate-600"
-            }`}>
-              {msg.sender === "AI" ? "AI" : "U"}
-            </div>
-            <div className={`max-w-[80%] px-3 py-2 rounded-xl text-xs leading-relaxed ${
-              msg.sender === "AI"
-                ? "bg-brand-50 text-brand-900 rounded-tl-none"
-                : "bg-slate-100 text-slate-700 rounded-tr-none"
-            }`}>
-              {msg.message}
-            </div>
-          </div>
-        );
-      })}
-      </div>
-      <div className="px-4 py-2 bg-slate-50 border-t border-slate-200">
-  <span className="text-xs text-slate-500 font-medium">Action: </span>
-  <span className="text-xs text-slate-700">{data.recommendedAction}</span>
-
-  <div className="text-xs text-slate-500 mt-1">
-    PQS Score: <span className="font-bold">{data.pqs_score}/10</span>
-  </div>
-</div>
-    </div>
-  );
-}
-
 const typeConfig = {
+  lead: { icon: Cpu,
+  color: "text-cyan-400",
+  label: "LEAD"
+},
   system:         { icon: Terminal,      color: "text-slate-400", label: "SYS" },
   info:           { icon: Cpu,           color: "text-brand-500", label: "INF" },
   objection:      { icon: AlertCircle,   color: "text-amber-500", label: "OBJ" },
@@ -83,7 +31,7 @@ export default function ConsolePanel({ logs, isProcessing, logEndRef }: Props) {
       <div className="flex items-center justify-between px-4 py-2.5 bg-slate-800 border-b border-slate-700">
         <div className="flex items-center gap-2">
           <Terminal size={13} className="text-slate-400" />
-          <span className="text-xs font-semibold text-slate-300">AI Processing Console</span>
+          <span className="text-xs font-semibold text-slate-300">Convo-AI Operations Terminal</span>
           {isProcessing && (
             <div className="flex items-center gap-1.5 ml-2">
               <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
@@ -102,48 +50,85 @@ export default function ConsolePanel({ logs, isProcessing, logEndRef }: Props) {
         {logs.length === 0 && (
           <div className="text-slate-600 text-center py-12">
             <Terminal size={24} className="mx-auto mb-3 opacity-40" />
-            <p>Console ready. Load leads and start processing.</p>
+            <p>Convo-AI agent ready. Upload lead batch to begin live processing.</p>
           </div>
         )}
 
-        {logs.map((log) => {
-          const cfg = typeConfig[log.type];
-          const Icon = cfg.icon;
-          return (
-            <div key={log.id} className="console-entry">
-              {log.type === "classification" && log.data ? (
-                <div className="mb-3">
-                  <div className="flex items-start gap-2.5 mb-1">
-                    <span className={`text-[10px] font-bold ${cfg.color} opacity-60 mt-0.5 w-8`}>{cfg.label}</span>
-                    <Icon size={12} className={`${cfg.color} mt-0.5 flex-shrink-0`} />
-                    <span className={`${cfg.color} font-medium`}>{log.message}</span>
-                  </div>
-                  <div className="ml-[50px]">
-                    <ConvoBlock data={log.data} />
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-start gap-2.5">
-                  <span className="text-[10px] font-bold text-slate-600 opacity-60 mt-0.5 w-8 flex-shrink-0">{cfg.label}</span>
-                  <Icon size={12} className={`${cfg.color} mt-0.5 flex-shrink-0`} />
-                  {log.type !== "system" && (
-                    <span className="text-slate-500 text-[10px] font-medium mt-0.5 w-10 flex-shrink-0">{log.leadId}</span>
-                  )}
-                  <span className={`${log.type === "system" ? "text-slate-400" : "text-slate-300"} leading-relaxed`}>
-                    {log.message}
-                  </span>
-                </div>
-              )}
-            </div>
-          );
-        })}
+{logs.map((log) => {
 
-        {isProcessing && (
-          <div className="flex items-center gap-2 text-slate-500 mt-1">
-            <span className="w-8" />
-            <span className="typing-cursor text-brand-400"> </span>
-          </div>
-        )}
+  const cfg = typeConfig[log.type];
+  const Icon = cfg.icon;
+
+  return (
+
+    <div
+      key={log.id}
+      className={`flex items-start gap-3 ${
+        log.type === "lead"
+  ? ""
+  : log.type === "system"
+  ? ""
+  : log.type === "classification"
+  ? "ml-6"
+  : "ml-12"
+      }`}
+    >
+
+      <span
+        className={`text-[10px] font-bold opacity-70 mt-0.5 w-10 flex-shrink-0 ${cfg.color}`}
+      >
+        {cfg.label}
+      </span>
+
+      <Icon
+        size={12}
+        className={`${cfg.color} mt-0.5 flex-shrink-0`}
+      />
+
+<div className="flex flex-col gap-2">
+
+  <span
+    className={`leading-relaxed text-xs ${
+      log.type === "lead"
+        ? "text-cyan-300 font-semibold"
+        : log.type === "system"
+        ? "text-slate-200 font-medium"
+        : "text-slate-300"
+    }`}
+  >
+    {log.message}
+  </span>
+
+  {log.action && (
+    <button
+      onClick={() => window.location.href = "/dashboard"}
+      className="w-fit text-[11px] px-3 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 hover:bg-cyan-500/20 transition-all"
+    >
+      → {log.action}
+    </button>
+  )}
+
+</div>
+
+    </div>
+  );
+})}
+
+{isProcessing && (
+  <div className="flex items-center gap-2 text-slate-500 mt-2 pl-[4.5rem]">
+    
+    <div className="flex gap-1">
+      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce" />
+      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce [animation-delay:0.15s]" />
+      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce [animation-delay:0.3s]" />
+    </div>
+
+    <span className="text-[11px] text-slate-500">
+      AI agent processing...
+    </span>
+
+  </div>
+)}
         <div ref={logEndRef} />
       </div>
     </div>

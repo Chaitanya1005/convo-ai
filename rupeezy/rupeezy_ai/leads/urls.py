@@ -6,7 +6,10 @@ from .views import (
     RealCallView,
     UploadCSVView,
     ProgressView,
-    DashboardView
+    DashboardView,
+    SessionListView,
+    ExportSessionCSVView,
+    test_agent
 )
 
 urlpatterns = [
@@ -16,5 +19,11 @@ urlpatterns = [
     path("process-leads/", ProcessLeadsView.as_view()),
     path("real-call/", RealCallView.as_view()),
     path("progress/", ProgressView.as_view()),
-    path("dashboard/", DashboardView.as_view()),
+    path("dashboard/<int:session_id>/", DashboardView.as_view()),
+    path("sessions/", SessionListView.as_view()),
+    path(
+    "dashboard/<int:session_id>/export/",
+    ExportSessionCSVView.as_view()
+),
+path("test-agent/", test_agent),
 ]

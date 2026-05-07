@@ -3,7 +3,10 @@ from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
-
+import csv
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.http import HttpResponse
 from .services.call_service import start_real_call
 from .services.ai_agent import (
     run_ai_call,
@@ -15,9 +18,6 @@ from .models import Lead, CallLog, UploadSession
 from .serializers import LeadSerializer
 
 from django.db.models import Count
-
-import csv
-
 
 class ProgressView(APIView):
 
@@ -49,7 +49,15 @@ class ProcessLeadsView(APIView):
 
     def post(self, request):
 
-        leads = Lead.objects.all()
+        latest_session = UploadSession.objects.order_by("-created_at").first()
+
+        if not latest_session:
+            return Response(
+                {"error": "No upload session found"},
+                status=400
+            )
+
+        leads = Lead.objects.filter(session=latest_session)
 
         results = process_leads(leads)
         hot = len([r for r in results if r["classification"] == "Hot"])
@@ -66,16 +74,17 @@ class ProcessLeadsView(APIView):
             key=lambda x: [r["objection"] for r in results].count(x)
         )
         return Response({
-        "results": results,
-        "analytics": {
-            "total": len(results),
-            "hot": hot,
-            "warm": warm,
-            "cold": cold,
-            "avg_pqs": avg_pqs,
-            "top_objection": top_objection
-        }
-    })
+            "session_id": latest_session.id,
+            "results": results,
+            "analytics": {
+                "total": len(results),
+                "hot": hot,
+                "warm": warm,
+                "cold": cold,
+                "avg_pqs": avg_pqs,
+                "top_objection": top_objection
+            }
+        })
 
 
 class LeadListCreateView(ListCreateAPIView):
@@ -185,74 +194,183 @@ class UploadCSVView(APIView):
 
 class DashboardView(APIView):
 
-    def get(self, request):
+    def get(self, request, session_id):
 
-        sessions = UploadSession.objects.order_by("-created_at")
+        session = get_object_or_404(
+            UploadSession,
+            id=session_id
+        )
 
-        session_data = []
+        leads = Lead.objects.filter(session=session)
 
-        for session in sessions:
+        total = leads.count()
 
-            leads = Lead.objects.filter(session=session)
+        hot = leads.filter(
+            classification="Hot"
+        ).count()
 
-            total = leads.count()
+        warm = leads.filter(
+            classification="Warm"
+        ).count()
 
-            hot = leads.filter(
-                classification="Hot"
-            ).count()
+        cold = leads.filter(
+            classification="Cold"
+        ).count()
 
-            warm = leads.filter(
-                classification="Warm"
-            ).count()
+        avg_pqs = 0
 
-            cold = leads.filter(
-                classification="Cold"
-            ).count()
+        if total > 0:
 
-            avg_pqs = 0
+            avg_pqs = round(
+                sum([lead.pqs_score for lead in leads]) / total,
+                1
+            )
 
-            if total > 0:
+        return Response({
 
-                avg_pqs = round(
-                    sum([lead.pqs_score for lead in leads]) / total,
-                    1
-                )
-
-            session_data.append({
-
+            "session": {
                 "id": session.id,
                 "name": session.name,
                 "created_at": session.created_at,
+            },
 
+            "analytics": {
                 "total": total,
                 "hot": hot,
                 "warm": warm,
                 "cold": cold,
+                "avg_pqs": avg_pqs
+            },
 
-                "avg_pqs": avg_pqs,
+"leads": [
 
-                "leads": [
+    {
+        "id": lead.id,
+        "displayId": f"L{index:03}",
+        "name": lead.name,
+        "phone": lead.phone,
+        "classification": lead.classification,
+        "pqs_score": lead.pqs_score,
+        "objection": lead.objection,
+        "summary": lead.summary,
+        "recommended_action": lead.recommended_action,
+        "investment_range": lead.investment_range,
+        "intent": lead.intent,
+        "conversation": lead.conversation,
+    }
 
-                    {
-                        "id": lead.id,
-                        "name": lead.name,
-                        "phone": lead.phone,
-                        "email": lead.email,
+    for index, lead in enumerate(leads, start=1)
+]
+        })
+class ExportSessionCSVView(APIView):
 
-                        "classification": lead.classification,
-                        "pqs_score": lead.pqs_score,
-                        "objection": lead.objection,
-                        "summary": lead.summary,
-                        "intent": lead.intent,
-                        "conversation": lead.conversation,
-                        "recommended_action": lead.recommended_action,
-                        "processed_at": lead.processed_at,
-                        "investment_range": lead.investment_range,
-                        "processed": lead.processed
-                    }
+    def get(self, request, session_id):
 
-                    for lead in leads
-                ]
-            })
+        session = UploadSession.objects.get(id=session_id)
 
-        return Response(session_data)
+        leads = Lead.objects.filter(session=session)
+
+        response = HttpResponse(content_type='text/csv')
+
+        response['Content-Disposition'] = (
+            f'attachment; filename="{session.name}_report.csv"'
+        )
+
+        writer = csv.writer(response)
+
+        writer.writerow([
+            "Lead ID",
+            "Name",
+            "Phone",
+            "Classification",
+            "PQI",
+            "Objection",
+            "Intent",
+            "Recommended Action"
+        ])
+
+        for i, lead in enumerate(leads, start=1):
+
+            writer.writerow([
+                f"L{i:03}",
+                lead.name,
+                lead.phone,
+                lead.classification,
+                lead.pqs_score,
+                lead.objection,
+                lead.intent,
+                lead.recommended_action
+            ])
+
+        return response
+class SessionListView(APIView):
+
+    def get(self, request):
+
+        sessions = UploadSession.objects.order_by(
+            "-created_at"
+        )
+
+        data = [
+
+            {
+                "id": session.id,
+                "name": session.name,
+                "created_at": session.created_at,
+                "lead_count": session.leads.count()
+            }
+
+            for session in sessions
+        ]
+
+        return Response(data)
+
+
+@api_view(["POST"])
+def test_agent(request):
+
+    message = request.data.get("message", "").lower()
+
+    reply = (
+        "Thank you for your interest. Could you please tell me more about your onboarding requirements?"
+    )
+
+    if "brokerage" in message:
+
+        reply = (
+            "Rupeezy partners can receive up to 100% brokerage sharing along with dedicated RM support, faster onboarding workflows, and scalable client management assistance."
+        )
+
+    elif "hindi" in message:
+
+        reply = (
+            "Bilkul. Rupeezy partner program mein aapko zero joining fee, dedicated RM support, aur attractive brokerage structure milta hai."
+        )
+
+    elif "family" in message:
+
+        reply = (
+            "Understood. Aap family se discuss kar lijiye. Main aapko onboarding benefits aur brokerage details WhatsApp par bhi share kar sakta hoon."
+        )
+
+    elif "document" in message:
+
+        reply = (
+            "Generally PAN card, Aadhaar card, bank proof, and basic KYC documents are required for onboarding."
+        )
+
+    elif "onboarding" in message:
+
+        reply = (
+            "The onboarding process is fully digital and typically completed within a few working hours after document verification."
+        )
+
+    elif "benefits" in message:
+
+        reply = (
+            "Rupeezy partners receive brokerage sharing, onboarding assistance, client management support, faster payouts, and dedicated RM guidance."
+        )
+
+    return Response({
+        "reply": reply
+    })

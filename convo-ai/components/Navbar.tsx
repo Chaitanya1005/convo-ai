@@ -5,8 +5,8 @@ import { TrendingUp, Bell, Settings, User } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Lead Console", href: "/workspace" },
-  { label: "Analytics",    href: "/analytics"  },
-  { label: "Reports",      href: "/reports"    },
+  { label: "Dashboard", href: "/dashboard/" },
+  { label: "Try Convo-AI", href: "/test-agent" },
 ];
 
 export default function Navbar() {

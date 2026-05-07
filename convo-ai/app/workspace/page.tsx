@@ -10,11 +10,12 @@ import { delay } from "@/lib/utils";
 
 export type LogEntry = {
   id: string;
-  type: "info" | "objection" | "conversation" | "classification" | "system";
+  type: "info" | "objection" | "conversation" | "classification" | "system" | "lead";
   leadId: string;
   leadName: string;
   message: string;
-  data?: any;
+ data?: any;
+action?: string;
 };
 
 export type Stats = {
@@ -76,37 +77,81 @@ export default function WorkspacePage() {
   }
 };
 
-  const uploadCSV = async () => {
-  if (!file) {
+const uploadCSV = async (selectedFile?: File) => {
+
+  const fileToUpload = selectedFile || file;
+
+  if (!fileToUpload) {
     alert("Please select a CSV file");
     return;
   }
 
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append("file", fileToUpload);
 
   try {
+setLogs([]);
+
+
     const res = await fetch("http://localhost:8000/api/upload-csv/", {
       method: "POST",
       body: formData,
     });
 
     const data = await res.json();
-    console.log("Upload response:", data);
 
-    //  IMPORTANT
-     await fetchLeads();// new leads load karega DB se
+    addLog({
+      type: "system",
+      leadId: "SYS",
+      leadName: "System",
+      message: `${data.count} leads imported successfully.`,
+    });
+
+    await fetchLeads();
+
   } catch (err) {
+
     console.error("Upload error:", err);
+
+    addLog({
+      type: "system",
+      leadId: "ERR",
+      leadName: "System",
+      message: "CSV upload failed.",
+    });
   }
 };
 
 const startProcessing = async () => {
+  let sessionId: number | null = null;
+  if (leads.length === 0) {
+
+  addLog({
+    type: "system",
+    leadId: "SYS",
+    leadName: "System",
+    message: "No lead batch found. Upload CSV before starting AI processing.",
+  });
+
+  return;
+}
   if (isProcessing) return;
 
   setIsProcessing(true);
-  setStage("Processing Leads...");
   setLogs([]);
+
+setProgress(0);
+
+setStats({
+  hot: 0,
+  warm: 0,
+  cold: 0,
+  processed: 0,
+  total: leads.length,
+  avgPqs: 0,
+  topObjection: "—",
+});
+  setStage("Processing Leads...");
 
   addLog({
     type: "system",
@@ -121,6 +166,7 @@ const startProcessing = async () => {
     });
 
     const data = await response.json();
+    sessionId = data.session_id;
     
 
     console.log("PROCESS RESPONSE:", data);
@@ -132,32 +178,114 @@ const startProcessing = async () => {
     let hot = 0;
     let warm = 0;
     let cold = 0;
+    let totalPqs = 0;
 
-    processed.forEach((lead: any, index: number) => {
-      const cls = lead.classification?.toLowerCase();
+for (let index = 0; index < processed.length; index++) {
 
-      if (cls === "hot") hot++;
-      else if (cls === "warm") warm++;
-      else cold++;
+  const lead = processed[index];
+  const leadCode = `L${String(index + 1).padStart(3, "0")}`;
 
-      addLog({
-  type: "classification",
-  leadId: String(lead.id),
-  leadName: lead.name,
-  message: `${lead.name} classified as ${lead.classification}`,
+  // LEAD HEADER
+  addLog({
+    type: "lead",
+    leadId: leadCode,
+    leadName: lead.name,
+    message: `Calling ${leadCode}...`,
+  });
 
-  data: {
-    name: lead.name,
-    intent: lead.intent || "Investment",
-    classification: lead.classification,
-    conversation: lead.conversation || [],
-    recommendedAction: lead.recommended_action || "Follow up",
-    pqs_score: lead.pqs_score || 5,
-  }
+  await delay(1000);
+
+  // TEMP STATUS
+  const tempId = crypto.randomUUID();
+
+  setLogs((prev) => [
+    ...prev,
+    {
+      id: tempId,
+      type: "info",
+      leadId: leadCode,
+      leadName: lead.name,
+      message: "Convo-AI agent connected",
+    },
+  ]);
+
+  await delay(2200);
+
+  setLogs((prev) =>
+    prev.map((log) =>
+      log.id === tempId
+        ? {
+            ...log,
+            message: "Language detected: Hindi / Hinglish",
+          }
+        : log
+    )
+  );
+
+  await delay(2200);
+
+  setLogs((prev) =>
+    prev.map((log) =>
+      log.id === tempId
+        ? {
+            ...log,
+            message: "AP program benefits introduced",
+          }
+        : log
+    )
+  );
+
+  await delay(2200);
+
+  setLogs((prev) =>
+    prev.map((log) =>
+      log.id === tempId
+        ? {
+            ...log,
+            message: `Objection handled: ${lead.objection}`,
+          }
+        : log
+    )
+  );
+
+  await delay(2200);
+
+  const cls = lead.classification?.toLowerCase();
+  totalPqs += Number(lead.pqs_score || 0);
+
+  if (cls === "hot") hot++;
+  else if (cls === "warm") warm++;
+  else cold++;
+
+  // FINAL STATE
+  setLogs((prev) =>
+    prev.map((log) =>
+      log.id === tempId
+        ? {
+            ...log,
+            type: "classification",
+            message: `Lead classified as ${lead.classification} • PQS: ${lead.pqs_score}/10`,
+          }
+        : log
+    )
+  );
+
+setStats({
+  hot,
+  warm,
+  cold,
+  processed: index + 1,
+  total: processed.length,
+  avgPqs: Number((totalPqs / (index + 1)).toFixed(1)),
+  topObjection: data.analytics.top_objection || "—",
 });
 
-      setProgress(Math.round(((index + 1) / processed.length) * 100));
-    });
+  setProgress(
+    Math.round(((index + 1) / processed.length) * 100)
+  );
+
+  await delay(2500);
+}
 
     setStats({
       hot,
@@ -165,19 +293,21 @@ const startProcessing = async () => {
       cold,
       processed: processed.length,
       total: processed.length,
-      avgPqs: data.analytics.avg_pqs,
+      avgPqs: Number((totalPqs / processed.length).toFixed(1)),
       topObjection: data.analytics.top_objection || "—",
     });
 
-    setStage("Completed");
+    setStage("All leads processed");
     setIsDone(true);
 
-    addLog({
-      type: "system",
-      leadId: "SYS",
-      leadName: "System",
-      message: "All leads processed successfully.",
-    });
+addLog({
+  type: "system",
+  leadId: "SYS",
+  leadName: "System",
+  message:
+    "Convo-AI lead processing completed. RM dashboard and lead intelligence reports are ready.",
+  action: "Open RM Dashboard",
+});
 
   } catch (err) {
     console.error(err);
@@ -191,13 +321,13 @@ const startProcessing = async () => {
   }
 
   setIsProcessing(false);
-};
+  if (sessionId) {
 
-  const goToDashboard = () => {
-    sessionStorage.setItem("processedLeads", JSON.stringify(processedLeads));
-    sessionStorage.setItem("stats", JSON.stringify(stats));
-    router.push("/dashboard");
-  };
+  setTimeout(() => {
+  }, 2000);
+
+}
+};
 
   return (
     <div className="h-screen flex flex-col bg-slate-50 overflow-hidden">
@@ -209,6 +339,7 @@ const startProcessing = async () => {
             isProcessing={isProcessing}
             leadCount={leads.length}
             processedCount={stats.processed}
+            selectedFileName={file?.name}
             onUploadCSV={uploadCSV}
             onStartProcessing={startProcessing}
             setFile={setFile}
@@ -229,7 +360,7 @@ const startProcessing = async () => {
           />
         </div>
 
-        <div className="w-72 border-l bg-white overflow-y-auto">
+        <div className="w-72 border-l bg-white">
           <StatsPanel stats={stats} />
         </div>
       </div>

@@ -1,5 +1,5 @@
 "use client";
-import { Flame, Thermometer, Wind, TrendingUp, AlertTriangle } from "lucide-react";
+import { Flame, Thermometer, Wind, TrendingUp, ShieldCheck } from "lucide-react";
 import { Stats } from "@/app/workspace/page";
 
 interface Props {
@@ -10,11 +10,11 @@ export default function StatsPanel({ stats }: Props) {
   const conversionRate = stats.processed > 0 ? Math.round((stats.hot / stats.processed) * 100) : 0;
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4 space-y-4">
       <div>
         <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-3">Live Stats</div>
 
-        <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 mb-3">
+        <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 mb-2">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-slate-500">Leads Processed</span>
             <span className="text-xs font-bold text-slate-800 font-mono">{stats.processed}/{stats.total}</span>
@@ -46,58 +46,35 @@ export default function StatsPanel({ stats }: Props) {
           </div>
         </div>
       </div>
-
       <div>
-        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-3">Top Objection</div>
-        <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex items-start gap-2.5">
-          <AlertTriangle size={14} className="text-amber-500 mt-0.5 flex-shrink-0" />
-          <div>
-            <div className="text-xs font-semibold text-amber-700">Most common</div>
-            <div className="text-xs text-amber-600 mt-0.5 leading-relaxed">
-              {stats.topObjection === "—" ? "None yet" : stats.topObjection}
+              <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-3">
+                Partner Qualification
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-xl p-2.5 flex items-center gap-3">
+
+                <div className="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center flex-shrink-0">
+                  <ShieldCheck size={18} className="text-cyan-600" />
+                </div>
+
+                <div className="flex-1">
+                  <div className="text-2xl font-bold text-slate-800 leading-none">
+                    {stats.avgPqs || 0}/10
+                  </div>
+
+                  <div className="text-xs text-slate-500 mt-0.5">
+                    Partner Quality Index
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div>
-        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-3">Distribution</div>
-        {stats.processed > 0 ? (
-          <div className="space-y-2">
-            {[
-              { label: "Hot", val: stats.hot, max: stats.processed, color: "bg-green-500" },
-              { label: "Warm", val: stats.warm, max: stats.processed, color: "bg-amber-400" },
-              { label: "Cold", val: stats.cold, max: stats.processed, color: "bg-slate-300" },
-            ].map((b) => (
-              <div key={b.label} className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 w-10">{b.label}</span>
-                <div className="flex-1 bg-slate-100 rounded-full h-1.5">
-                  <div
-                    className={`${b.color} h-1.5 rounded-full transition-all duration-700`}
-                    style={{ width: `${b.max > 0 ? (b.val / b.max) * 100 : 0}%` }}
-                  />
-                </div>
-                <span className="text-xs font-mono font-semibold text-slate-600 w-4">{b.val}</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-xs text-slate-400 text-center py-4">Waiting for data…</div>
-        )}
-      </div>
-
-      <div className="bg-slate-800 rounded-xl p-3 text-center">
-        <div className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider mb-1">Engine</div>
-        <div className="text-green-400 text-xs font-medium font-mono">Convo-AI v2.1 ●</div>
-        <div className="text-slate-500 text-[10px] mt-0.5">SEBI Compliant Mode</div>
-      </div>
-    </div>
-  );
+   );
 }
 
 function StatRow({ icon, label, value, color, bg, border }: { icon: React.ReactNode; label: string; value: number; color: string; bg: string; border: string }) {
   return (
-    <div className={`flex items-center justify-between px-3 py-2.5 rounded-xl border ${bg} ${border}`}>
+    <div className={`flex items-center justify-between px-3 py-2 rounded-xl border ${bg} ${border}`}>
       <div className="flex items-center gap-2">
         {icon}
         <span className="text-xs font-medium text-slate-700">{label}</span>
