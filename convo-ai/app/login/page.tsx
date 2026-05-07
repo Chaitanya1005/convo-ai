@@ -32,8 +32,8 @@ export default function LoginPage() {
               <TrendingUp className="text-white" size={20} />
             </div>
             <div>
-              <div className="text-white font-bold text-lg leading-none">Rupeezy</div>
-              <div className="text-blue-200 text-xs">Investment Platform</div>
+              <div className="text-white font-bold text-3xl leading-none">Rupeezy</div>
+              <div className="text-blue-200 text-lg">Investment Platform</div>
             </div>
           </div>
         </div>
@@ -81,8 +81,8 @@ export default function LoginPage() {
           </div>
 
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-slate-800">Welcome back</h2>
-            <p className="text-slate-500 text-sm mt-1">Sign in to your RM workspace</p>
+            <h2 className="text-3xl font-bold text-slate-800">Welcome back</h2>
+            <p className="text-slate-500 text-lg mt-1">Sign in to your RM workspace</p>
           </div>
 
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 flex items-start gap-3">
