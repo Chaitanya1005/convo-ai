@@ -62,7 +62,7 @@ npm run dev
 
 ## 🔥 Use Case
 
-Helps brokerage platforms scale their sales operations by reducing dependency on human relationship managers.
+Helps brokerage platforms scale their sales operations by reducing dependency on human relationship managers (RM).
 
 ---
 
